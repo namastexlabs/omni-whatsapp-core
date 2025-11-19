@@ -4568,7 +4568,47 @@ export class BaileysStartupService extends ChannelStartupService {
   private async updateMessagesReadedByTimestamp(remoteJid: string, timestamp?: number): Promise<number> {
     if (timestamp === undefined || timestamp === null) return 0;
 
-    // Use raw SQL to avoid JSON path issues
+    const dbProvider = process.env.DATABASE_PROVIDER || 'postgresql';
+
+    // SQLite-compatible version using Prisma ORM
+    if (dbProvider === 'sqlite') {
+      // Get messages that match criteria
+      const messages = await this.prismaRepository.message.findMany({
+        where: {
+          instanceId: this.instanceId,
+          messageTimestamp: { lte: timestamp },
+          OR: [
+            { status: null },
+            { status: status[3] }
+          ]
+        },
+        select: { id: true, key: true }
+      });
+
+      // Filter by JSON key fields (Prisma doesn't support JSON queries well in SQLite)
+      const matchingIds = messages
+        .filter((msg: any) => {
+          const key = typeof msg.key === 'string' ? JSON.parse(msg.key) : msg.key;
+          return key?.remoteJid === remoteJid && key?.fromMe === false;
+        })
+        .map((msg: any) => msg.id);
+
+      if (matchingIds.length === 0) return 0;
+
+      // Update matched messages
+      const result = await this.prismaRepository.message.updateMany({
+        where: { id: { in: matchingIds } },
+        data: { status: status[4] }
+      });
+
+      if (result.count > 0) {
+        this.updateChatUnreadMessages(remoteJid);
+      }
+
+      return result.count;
+    }
+
+    // PostgreSQL/MySQL - Use raw SQL for performance
     const result = await this.prismaRepository.$executeRaw`
       UPDATE "Message"
       SET "status" = ${status[4]}
@@ -4591,17 +4631,37 @@ export class BaileysStartupService extends ChannelStartupService {
   }
 
   private async updateChatUnreadMessages(remoteJid: string): Promise<number> {
-    const [chat, unreadMessages] = await Promise.all([
-      this.prismaRepository.chat.findFirst({ where: { remoteJid } }),
-      // Use raw SQL to avoid JSON path issues
-      this.prismaRepository.$queryRaw`
+    const dbProvider = process.env.DATABASE_PROVIDER || 'postgresql';
+
+    let unreadMessages: number;
+    const chat = await this.prismaRepository.chat.findFirst({ where: { remoteJid } });
+
+    // SQLite-compatible version
+    if (dbProvider === 'sqlite') {
+      const messages = await this.prismaRepository.message.findMany({
+        where: {
+          instanceId: this.instanceId,
+          status: status[3]
+        },
+        select: { id: true, key: true }
+      });
+
+      // Filter by JSON key fields
+      unreadMessages = messages.filter((msg: any) => {
+        const key = typeof msg.key === 'string' ? JSON.parse(msg.key) : msg.key;
+        return key?.remoteJid === remoteJid && key?.fromMe === false;
+      }).length;
+    } else {
+      // PostgreSQL/MySQL - Use raw SQL for performance
+      const result: any[] = await this.prismaRepository.$queryRaw`
         SELECT COUNT(*)::int as count FROM "Message"
         WHERE "instanceId" = ${this.instanceId}
         AND "key"->>'remoteJid' = ${remoteJid}
         AND ("key"->>'fromMe')::boolean = false
         AND "status" = ${status[3]}
-      `.then((result: any[]) => result[0]?.count || 0),
-    ]);
+      `;
+      unreadMessages = result[0]?.count || 0;
+    }
 
     if (chat && chat.unreadMessages !== unreadMessages) {
       await this.prismaRepository.chat.update({ where: { id: chat.id }, data: { unreadMessages } });
