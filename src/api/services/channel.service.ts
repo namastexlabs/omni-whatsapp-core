@@ -614,10 +614,10 @@ export class ChannelStartupService {
         messageType: query?.where?.messageType,
         ...timestampFilter,
         AND: [
-          keyFilters?.id ? { key: { path: 'id', equals: keyFilters?.id } } : {},
-          keyFilters?.fromMe ? { key: { path: 'fromMe', equals: keyFilters?.fromMe } } : {},
-          keyFilters?.remoteJid ? { key: { path: 'remoteJid', equals: keyFilters?.remoteJid } } : {},
-          keyFilters?.participants ? { key: { path: 'participants', equals: keyFilters?.participants } } : {},
+          keyFilters?.id ? { key: { path: ['id'], equals: keyFilters?.id } } : {},
+          keyFilters?.fromMe ? { key: { path: ['fromMe'], equals: keyFilters?.fromMe } } : {},
+          keyFilters?.remoteJid ? { key: { path: ['remoteJid'], equals: keyFilters?.remoteJid } } : {},
+          keyFilters?.participants ? { key: { path: ['participants'], equals: keyFilters?.participants } } : {},
         ],
       },
     });
@@ -638,10 +638,10 @@ export class ChannelStartupService {
         messageType: query?.where?.messageType,
         ...timestampFilter,
         AND: [
-          keyFilters?.id ? { key: { path: 'id', equals: keyFilters?.id } } : {},
-          keyFilters?.fromMe ? { key: { path: 'fromMe', equals: keyFilters?.fromMe } } : {},
-          keyFilters?.remoteJid ? { key: { path: 'remoteJid', equals: keyFilters?.remoteJid } } : {},
-          keyFilters?.participants ? { key: { path: 'participants', equals: keyFilters?.participants } } : {},
+          keyFilters?.id ? { key: { path: ['id'], equals: keyFilters?.id } } : {},
+          keyFilters?.fromMe ? { key: { path: ['fromMe'], equals: keyFilters?.fromMe } } : {},
+          keyFilters?.remoteJid ? { key: { path: ['remoteJid'], equals: keyFilters?.remoteJid } } : {},
+          keyFilters?.participants ? { key: { path: ['participants'], equals: keyFilters?.participants } } : {},
         ],
       },
       orderBy: {
