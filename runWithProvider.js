@@ -16,17 +16,30 @@ if (!DATABASE_PROVIDER) {
 function getMigrationsFolder(provider) {
   switch (provider) {
     case 'psql_bouncer':
-      return 'postgresql-migrations'; // psql_bouncer usa as migrations do postgresql
+    case 'pglite':
+      return 'postgresql-migrations'; // psql_bouncer and pglite use PostgreSQL migrations
     default:
       return `${provider}-migrations`;
   }
 }
 
+// Função para determinar qual schema usar
+function getSchemaFile(provider) {
+  switch (provider) {
+    case 'pglite':
+      return 'postgresql-schema.prisma'; // pglite uses PostgreSQL schema
+    default:
+      return `${provider}-schema.prisma`;
+  }
+}
+
 const migrationsFolder = getMigrationsFolder(databaseProviderDefault);
+const schemaFile = getSchemaFile(databaseProviderDefault);
 
 let command = process.argv
   .slice(2)
   .join(' ')
+  .replace(/DATABASE_PROVIDER-schema\.prisma/g, schemaFile)
   .replace(/DATABASE_PROVIDER/g, databaseProviderDefault);
 
 // Substituir referências à pasta de migrations pela pasta correta

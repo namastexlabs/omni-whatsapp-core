@@ -47,3 +47,7 @@ lerna-debug.log*
 
 /prisma/migrations/*
 *.db
+
+# PGLite database files
+/data/pglite/
+.pglite/

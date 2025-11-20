@@ -55,6 +55,7 @@ export type DBConnection = {
 export type Database = {
   CONNECTION: DBConnection;
   PROVIDER: string;
+  PGLITE_DATA_DIR?: string;
   SAVE_DATA: SaveData;
   DELETE_DATA: DeleteData;
 };
@@ -486,6 +487,7 @@ export class ConfigService {
           CLIENT_NAME: process.env.DATABASE_CONNECTION_CLIENT_NAME || 'evolution',
         },
         PROVIDER: process.env.DATABASE_PROVIDER || 'postgresql',
+        PGLITE_DATA_DIR: process.env.PGLITE_DATA_DIR,
         SAVE_DATA: {
           INSTANCE: process.env?.DATABASE_SAVE_DATA_INSTANCE === 'true',
           NEW_MESSAGE: process.env?.DATABASE_SAVE_DATA_NEW_MESSAGE === 'true',

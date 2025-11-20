@@ -20,6 +20,9 @@
     "db:studio": "node runWithProvider.js \"npx prisma studio --schema ./prisma/DATABASE_PROVIDER-schema.prisma\"",
     "db:migrate:dev": "node runWithProvider.js \"rm -rf ./prisma/migrations && cp -r ./prisma/DATABASE_PROVIDER-migrations ./prisma/migrations && npx prisma migrate dev --schema ./prisma/DATABASE_PROVIDER-schema.prisma && cp -r ./prisma/migrations/* ./prisma/DATABASE_PROVIDER-migrations\"",
     "db:migrate:dev:win": "node runWithProvider.js \"xcopy /E /I prisma\\DATABASE_PROVIDER-migrations prisma\\migrations && npx prisma migrate dev --schema prisma\\DATABASE_PROVIDER-schema.prisma\"",
+    "db:pglite:generate": "DATABASE_PROVIDER=pglite npm run db:generate",
+    "db:pglite:deploy": "DATABASE_PROVIDER=pglite npm run db:deploy",
+    "db:pglite:studio": "DATABASE_PROVIDER=pglite npm run db:studio",
     "prepare": "husky"
   },
   "repository": {
@@ -67,6 +70,7 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
     "@aws-sdk/client-sqs": "^3.891.0",
+    "@electric-sql/pglite": "^0.3.14",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@figuro/chatwoot-sdk": "^1.1.16",
     "@hapi/boom": "^10.0.1",
@@ -108,6 +112,7 @@
     "node-cron": "^3.0.3",
     "openai": "^4.77.3",
     "pg": "^8.13.1",
+    "pglite-prisma-adapter": "^0.6.1",
     "pino": "^9.10.0",
     "prisma": "^6.1.0",
     "pusher": "^5.2.0",
