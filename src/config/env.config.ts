@@ -89,8 +89,6 @@ export type EventsRabbitmq = {
   GROUP_UPDATE: boolean;
   GROUP_PARTICIPANTS_UPDATE: boolean;
   CALL: boolean;
-  TYPEBOT_START: boolean;
-  TYPEBOT_CHANGE_STATUS: boolean;
 };
 
 export type Rabbitmq = {
@@ -148,8 +146,6 @@ export type Sqs = {
     QRCODE_UPDATED: boolean;
     REMOVE_INSTANCE: boolean;
     SEND_MESSAGE: boolean;
-    TYPEBOT_CHANGE_STATUS: boolean;
-    TYPEBOT_START: boolean;
   };
 };
 
@@ -221,8 +217,6 @@ export type EventsWebhook = {
   GROUP_UPDATE: boolean;
   GROUP_PARTICIPANTS_UPDATE: boolean;
   CALL: boolean;
-  TYPEBOT_START: boolean;
-  TYPEBOT_CHANGE_STATUS: boolean;
   ERRORS: boolean;
   ERRORS_WEBHOOK: string;
 };
@@ -254,8 +248,6 @@ export type EventsPusher = {
   GROUP_UPDATE: boolean;
   GROUP_PARTICIPANTS_UPDATE: boolean;
   CALL: boolean;
-  TYPEBOT_START: boolean;
-  TYPEBOT_CHANGE_STATUS: boolean;
 };
 
 export type ApiKey = { KEY: string };
@@ -314,26 +306,6 @@ export type Webhook = {
 export type Pusher = { ENABLED: boolean; GLOBAL?: GlobalPusher; EVENTS: EventsPusher };
 export type ConfigSessionPhone = { CLIENT: string; NAME: string };
 export type QrCode = { LIMIT: number; COLOR: string };
-export type Typebot = { ENABLED: boolean; API_VERSION: string; SEND_MEDIA_BASE64: boolean };
-export type Chatwoot = {
-  ENABLED: boolean;
-  MESSAGE_DELETE: boolean;
-  MESSAGE_READ: boolean;
-  BOT_CONTACT: boolean;
-  IMPORT: {
-    DATABASE: {
-      CONNECTION: {
-        URI: string;
-      };
-    };
-    PLACEHOLDER_MEDIA_MESSAGE: boolean;
-  };
-};
-export type Openai = { ENABLED: boolean; API_KEY_GLOBAL?: string };
-export type Dify = { ENABLED: boolean };
-export type N8n = { ENABLED: boolean };
-export type Evoai = { ENABLED: boolean };
-export type Flowise = { ENABLED: boolean };
 
 export type S3 = {
   ACCESS_KEY: string;
@@ -411,13 +383,6 @@ export interface Env {
   PUSHER: Pusher;
   CONFIG_SESSION_PHONE: ConfigSessionPhone;
   QRCODE: QrCode;
-  TYPEBOT: Typebot;
-  CHATWOOT: Chatwoot;
-  OPENAI: Openai;
-  DIFY: Dify;
-  N8N: N8n;
-  EVOAI: Evoai;
-  FLOWISE: Flowise;
   CACHE: CacheConf;
   S3?: S3;
   AUTHENTICATION: Auth;
@@ -535,8 +500,6 @@ export class ConfigService {
           GROUP_UPDATE: process.env?.RABBITMQ_EVENTS_GROUPS_UPDATE === 'true',
           GROUP_PARTICIPANTS_UPDATE: process.env?.RABBITMQ_EVENTS_GROUP_PARTICIPANTS_UPDATE === 'true',
           CALL: process.env?.RABBITMQ_EVENTS_CALL === 'true',
-          TYPEBOT_START: process.env?.RABBITMQ_EVENTS_TYPEBOT_START === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.RABBITMQ_EVENTS_TYPEBOT_CHANGE_STATUS === 'true',
         },
       },
       NATS: {
@@ -572,8 +535,6 @@ export class ConfigService {
           GROUP_UPDATE: process.env?.NATS_EVENTS_GROUPS_UPDATE === 'true',
           GROUP_PARTICIPANTS_UPDATE: process.env?.NATS_EVENTS_GROUP_PARTICIPANTS_UPDATE === 'true',
           CALL: process.env?.NATS_EVENTS_CALL === 'true',
-          TYPEBOT_START: process.env?.NATS_EVENTS_TYPEBOT_START === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.NATS_EVENTS_TYPEBOT_CHANGE_STATUS === 'true',
         },
       },
       SQS: {
@@ -612,8 +573,6 @@ export class ConfigService {
           QRCODE_UPDATED: process.env?.SQS_GLOBAL_QRCODE_UPDATED === 'true',
           REMOVE_INSTANCE: process.env?.SQS_GLOBAL_REMOVE_INSTANCE === 'true',
           SEND_MESSAGE: process.env?.SQS_GLOBAL_SEND_MESSAGE === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.SQS_GLOBAL_TYPEBOT_CHANGE_STATUS === 'true',
-          TYPEBOT_START: process.env?.SQS_GLOBAL_TYPEBOT_START === 'true',
         },
       },
       KAFKA: {
@@ -655,8 +614,6 @@ export class ConfigService {
           GROUP_UPDATE: process.env?.KAFKA_EVENTS_GROUPS_UPDATE === 'true',
           GROUP_PARTICIPANTS_UPDATE: process.env?.KAFKA_EVENTS_GROUP_PARTICIPANTS_UPDATE === 'true',
           CALL: process.env?.KAFKA_EVENTS_CALL === 'true',
-          TYPEBOT_START: process.env?.KAFKA_EVENTS_TYPEBOT_START === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.KAFKA_EVENTS_TYPEBOT_CHANGE_STATUS === 'true',
         },
         SASL:
           process.env?.KAFKA_SASL_ENABLED === 'true'
@@ -720,8 +677,6 @@ export class ConfigService {
           GROUP_UPDATE: process.env?.PUSHER_EVENTS_GROUPS_UPDATE === 'true',
           GROUP_PARTICIPANTS_UPDATE: process.env?.PUSHER_EVENTS_GROUP_PARTICIPANTS_UPDATE === 'true',
           CALL: process.env?.PUSHER_EVENTS_CALL === 'true',
-          TYPEBOT_START: process.env?.PUSHER_EVENTS_TYPEBOT_START === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.PUSHER_EVENTS_TYPEBOT_CHANGE_STATUS === 'true',
         },
       },
       WA_BUSINESS: {
@@ -777,8 +732,6 @@ export class ConfigService {
           GROUP_UPDATE: process.env?.WEBHOOK_EVENTS_GROUPS_UPDATE === 'true',
           GROUP_PARTICIPANTS_UPDATE: process.env?.WEBHOOK_EVENTS_GROUP_PARTICIPANTS_UPDATE === 'true',
           CALL: process.env?.WEBHOOK_EVENTS_CALL === 'true',
-          TYPEBOT_START: process.env?.WEBHOOK_EVENTS_TYPEBOT_START === 'true',
-          TYPEBOT_CHANGE_STATUS: process.env?.WEBHOOK_EVENTS_TYPEBOT_CHANGE_STATUS === 'true',
           ERRORS: process.env?.WEBHOOK_EVENTS_ERRORS === 'true',
           ERRORS_WEBHOOK: process.env?.WEBHOOK_EVENTS_ERRORS_WEBHOOK || '',
         },
@@ -803,41 +756,6 @@ export class ConfigService {
       QRCODE: {
         LIMIT: Number.parseInt(process.env.QRCODE_LIMIT) || 30,
         COLOR: process.env.QRCODE_COLOR || '#198754',
-      },
-      TYPEBOT: {
-        ENABLED: process.env?.TYPEBOT_ENABLED === 'true',
-        API_VERSION: process.env?.TYPEBOT_API_VERSION || 'old',
-        SEND_MEDIA_BASE64: process.env?.TYPEBOT_SEND_MEDIA_BASE64 === 'true',
-      },
-      CHATWOOT: {
-        ENABLED: process.env?.CHATWOOT_ENABLED === 'true',
-        MESSAGE_DELETE: process.env.CHATWOOT_MESSAGE_DELETE === 'true',
-        MESSAGE_READ: process.env.CHATWOOT_MESSAGE_READ === 'true',
-        BOT_CONTACT: !process.env.CHATWOOT_BOT_CONTACT || process.env.CHATWOOT_BOT_CONTACT === 'true',
-        IMPORT: {
-          DATABASE: {
-            CONNECTION: {
-              URI: process.env.CHATWOOT_IMPORT_DATABASE_CONNECTION_URI || '',
-            },
-          },
-          PLACEHOLDER_MEDIA_MESSAGE: process.env?.CHATWOOT_IMPORT_PLACEHOLDER_MEDIA_MESSAGE === 'true',
-        },
-      },
-      OPENAI: {
-        ENABLED: process.env?.OPENAI_ENABLED === 'true',
-        API_KEY_GLOBAL: process.env?.OPENAI_API_KEY_GLOBAL || null,
-      },
-      DIFY: {
-        ENABLED: process.env?.DIFY_ENABLED === 'true',
-      },
-      N8N: {
-        ENABLED: process.env?.N8N_ENABLED === 'true',
-      },
-      EVOAI: {
-        ENABLED: process.env?.EVOAI_ENABLED === 'true',
-      },
-      FLOWISE: {
-        ENABLED: process.env?.FLOWISE_ENABLED === 'true',
       },
       CACHE: {
         REDIS: {

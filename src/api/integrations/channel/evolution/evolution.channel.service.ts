@@ -9,11 +9,10 @@ import {
 } from '@api/dto/sendMessage.dto';
 import * as s3Service from '@api/integrations/storage/s3/libs/minio.server';
 import { PrismaRepository } from '@api/repository/repository.service';
-import { chatbotController } from '@api/server.module';
 import { CacheService } from '@api/services/cache.service';
 import { ChannelStartupService } from '@api/services/channel.service';
 import { Events, wa } from '@api/types/wa.types';
-import { AudioConverter, Chatwoot, ConfigService, Openai, S3 } from '@config/env.config';
+import { AudioConverter, ConfigService, S3 } from '@config/env.config';
 import { BadRequestException, InternalServerErrorException } from '@exceptions';
 import { createJid } from '@utils/createJid';
 import { sendTelemetry } from '@utils/sendTelemetry';
@@ -31,9 +30,8 @@ export class EvolutionStartupService extends ChannelStartupService {
     public readonly eventEmitter: EventEmitter2,
     public readonly prismaRepository: PrismaRepository,
     public readonly cache: CacheService,
-    public readonly chatwootCache: CacheService,
   ) {
-    super(configService, eventEmitter, prismaRepository, chatwootCache);
+    super(configService, eventEmitter, prismaRepository);
 
     this.client = null;
   }
@@ -75,21 +73,6 @@ export class EvolutionStartupService extends ChannelStartupService {
     this.instance.number = instance.number;
     this.instance.token = instance.token;
     this.instance.businessId = instance.businessId;
-
-    if (this.configService.get<Chatwoot>('CHATWOOT').ENABLED && this.localChatwoot?.enabled) {
-      this.chatwootService.eventWhatsapp(
-        Events.STATUS_INSTANCE,
-        {
-          instanceName: this.instance.name,
-          instanceId: this.instance.id,
-          integration: instance.integration,
-        },
-        {
-          instance: this.instance.name,
-          status: 'created',
-        },
-      );
-    }
   }
 
   public async profilePicture(number: string) {
@@ -115,7 +98,6 @@ export class EvolutionStartupService extends ChannelStartupService {
 
   public async connectToWhatsapp(data?: any): Promise<any> {
     if (!data) {
-      this.loadChatwoot();
       return;
     }
 
@@ -148,54 +130,11 @@ export class EvolutionStartupService extends ChannelStartupService {
           instanceId: this.instanceId,
         };
 
-        const isAudio = received?.message?.audioMessage;
-
-        if (this.configService.get<Openai>('OPENAI').ENABLED && isAudio) {
-          const openAiDefaultSettings = await this.prismaRepository.openaiSetting.findFirst({
-            where: {
-              instanceId: this.instanceId,
-            },
-            include: {
-              OpenaiCreds: true,
-            },
-          });
-
-          if (
-            openAiDefaultSettings &&
-            openAiDefaultSettings.openaiCredsId &&
-            openAiDefaultSettings.speechToText &&
-            received?.message?.audioMessage
-          ) {
-            messageRaw.message.speechToText = `[audio] ${await this.openaiService.speechToText(received, this)}`;
-          }
-        }
-
         this.logger.log(messageRaw);
 
         sendTelemetry(`received.message.${messageRaw.messageType ?? 'unknown'}`);
 
         this.sendDataWebhook(Events.MESSAGES_UPSERT, messageRaw);
-
-        await chatbotController.emit({
-          instance: { instanceName: this.instance.name, instanceId: this.instanceId },
-          remoteJid: messageRaw.key.remoteJid,
-          msg: messageRaw,
-          pushName: messageRaw.pushName,
-        });
-
-        if (this.configService.get<Chatwoot>('CHATWOOT').ENABLED && this.localChatwoot?.enabled) {
-          const chatwootSentMessage = await this.chatwootService.eventWhatsapp(
-            Events.MESSAGES_UPSERT,
-            { instanceName: this.instance.name, instanceId: this.instanceId },
-            messageRaw,
-          );
-
-          if (chatwootSentMessage?.id) {
-            messageRaw.chatwootMessageId = chatwootSentMessage.id;
-            messageRaw.chatwootInboxId = chatwootSentMessage.id;
-            messageRaw.chatwootConversationId = chatwootSentMessage.id;
-          }
-        }
 
         await this.prismaRepository.message.create({
           data: messageRaw,
@@ -243,18 +182,6 @@ export class EvolutionStartupService extends ChannelStartupService {
 
     this.sendDataWebhook(Events.CONTACTS_UPSERT, contactRaw);
 
-    if (this.configService.get<Chatwoot>('CHATWOOT').ENABLED && this.localChatwoot?.enabled) {
-      await this.chatwootService.eventWhatsapp(
-        Events.CONTACTS_UPDATE,
-        {
-          instanceName: this.instance.name,
-          instanceId: this.instanceId,
-          integration: this.instance.integration,
-        },
-        contactRaw,
-      );
-    }
-
     const chat = await this.prismaRepository.chat.findFirst({
       where: { instanceId: this.instanceId, remoteJid: data.remoteJid },
     });
@@ -290,7 +217,7 @@ export class EvolutionStartupService extends ChannelStartupService {
     message: any,
     options?: Options,
     file?: any,
-    isIntegration = false,
+    _isIntegration = false,
   ) {
     try {
       let quoted: any;
@@ -508,22 +435,6 @@ export class EvolutionStartupService extends ChannelStartupService {
 
       this.sendDataWebhook(Events.SEND_MESSAGE, messageRaw);
 
-      if (this.configService.get<Chatwoot>('CHATWOOT').ENABLED && this.localChatwoot?.enabled && !isIntegration) {
-        this.chatwootService.eventWhatsapp(
-          Events.SEND_MESSAGE,
-          { instanceName: this.instance.name, instanceId: this.instanceId },
-          messageRaw,
-        );
-      }
-
-      if (this.configService.get<Chatwoot>('CHATWOOT').ENABLED && this.localChatwoot?.enabled && isIntegration)
-        await chatbotController.emit({
-          instance: { instanceName: this.instance.name, instanceId: this.instanceId },
-          remoteJid: messageRaw.key.remoteJid,
-          msg: messageRaw,
-          pushName: messageRaw.pushName,
-        });
-
       await this.prismaRepository.message.create({
         data: messageRaw,
       });
@@ -695,7 +606,7 @@ export class EvolutionStartupService extends ChannelStartupService {
     if (file?.buffer) {
       mediaData.audio = file.buffer.toString('base64');
     } else {
-      console.error('El archivo o buffer no est� definido correctamente.');
+      console.error('El archivo o buffer no está definido correctamente.');
       throw new Error('File or buffer is undefined.');
     }
 
