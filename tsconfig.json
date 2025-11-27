@@ -17,6 +17,9 @@
     "strictNullChecks": false,
     "incremental": true,
     "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
       "@api/*": ["./src/api/*"],

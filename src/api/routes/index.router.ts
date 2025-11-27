@@ -97,7 +97,7 @@ if (metricsConfig.ENABLED) {
     metricsMiddleware.push(metricsBasicAuth);
   }
 
-  router.get('/metrics', ...metricsMiddleware, async (req, res) => {
+  router.get('/metrics', ...metricsMiddleware, async (_req, res) => {
     res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
 
@@ -198,7 +198,7 @@ router
       whatsappWebVersion: (await fetchLatestWaWebVersion({})).version.join('.'),
     });
   })
-  .post('/verify-creds', authGuard['apikey'], async (req, res) => {
+  .post('/verify-creds', authGuard['apikey'], async (_req, res) => {
     const facebookConfig = configService.get<Facebook>('FACEBOOK');
     return res.status(HttpStatus.OK).json({
       status: HttpStatus.OK,

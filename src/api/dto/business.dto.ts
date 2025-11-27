@@ -1,7 +1,3 @@
-export class NumberDto {
-  number: string;
-}
-
 export class getCatalogDto {
   number?: string;
   limit?: number;

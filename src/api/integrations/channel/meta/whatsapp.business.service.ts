@@ -14,7 +14,6 @@ import {
   SendTextDto,
 } from '@api/dto/sendMessage.dto';
 import * as s3Service from '@api/integrations/storage/s3/libs/minio.server';
-import { ProviderFiles } from '@api/provider/sessions';
 import { PrismaRepository } from '@api/repository/repository.service';
 import { CacheService } from '@api/services/cache.service';
 import { ChannelStartupService } from '@api/services/channel.service';
@@ -38,7 +37,6 @@ export class BusinessStartupService extends ChannelStartupService {
     public readonly prismaRepository: PrismaRepository,
     public readonly cache: CacheService,
     public readonly baileysCache: CacheService,
-    private readonly providerFiles: ProviderFiles,
   ) {
     super(configService, eventEmitter, prismaRepository);
   }
@@ -273,20 +271,6 @@ export class BusinessStartupService extends ChannelStartupService {
     return content;
   }
 
-  private messageLocationJson(received: any) {
-    const message = received.messages[0];
-    let content: any = {
-      locationMessage: {
-        degreesLatitude: message.location.latitude,
-        degreesLongitude: message.location.longitude,
-        name: message.location?.name,
-        address: message.location?.address,
-      },
-    };
-    message.context ? (content = { ...content, contextInfo: { stanzaId: message.context.id } }) : content;
-    return content;
-  }
-
   private messageContactsJson(received: any) {
     const message = received.messages[0];
     let content: any = {};
@@ -378,7 +362,7 @@ export class BusinessStartupService extends ChannelStartupService {
     return messageType;
   }
 
-  protected async messageHandle(received: any, database: Database, settings: any) {
+  protected async messageHandle(received: any, _database: Database, settings: any) {
     try {
       let messageRaw: any;
       let pushName: any;

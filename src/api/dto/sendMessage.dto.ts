@@ -50,9 +50,6 @@ export class Metadata {
 export class SendTextDto extends Metadata {
   text: string;
 }
-export class SendPresence extends Metadata {
-  text: string;
-}
 
 export class SendStatusDto extends Metadata {
   type: string;

@@ -73,7 +73,7 @@ async function bootstrap() {
   app.use('/', router);
 
   app.use(
-    (err: Error, req: Request, res: Response, next: NextFunction) => {
+    (err: Error, _req: Request, res: Response, next: NextFunction) => {
       if (err) {
         const webhook = configService.get<Webhook>('WEBHOOK');
 

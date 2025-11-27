@@ -62,7 +62,6 @@ export class ChannelController {
         data.prismaRepository,
         data.cache,
         data.baileysCache,
-        data.providerFiles,
       );
     }
 

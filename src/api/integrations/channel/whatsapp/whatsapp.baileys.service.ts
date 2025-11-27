@@ -245,7 +245,6 @@ export class BaileysStartupService extends ChannelStartupService {
 
   // Cache TTL constants (in seconds)
   private readonly MESSAGE_CACHE_TTL_SECONDS = 5 * 60; // 5 minutes - avoid duplicate message processing
-  private readonly UPDATE_CACHE_TTL_SECONDS = 30 * 60; // 30 minutes - avoid duplicate status updates
 
   public stateConnection: wa.StateConnection = { state: 'close' };
 
@@ -1668,13 +1667,6 @@ export class BaileysStartupService extends ChannelStartupService {
 
   private historySyncNotification(_msg: proto.Message.IHistorySyncNotification) {
     return true;
-  }
-
-  private isSyncNotificationFromUsedSyncType(msg: proto.Message.IHistorySyncNotification) {
-    return (
-      (this.localSettings.syncFullHistory && msg?.syncType === 2) ||
-      (!this.localSettings.syncFullHistory && msg?.syncType === 3)
-    );
   }
 
   public async profilePicture(number: string) {
@@ -4465,7 +4457,7 @@ export class BaileysStartupService extends ChannelStartupService {
   }
 
   //Business Controller
-  public async fetchCatalog(instanceName: string, data: getCollectionsDto) {
+  public async fetchCatalog(_instanceName: string, data: getCollectionsDto) {
     const jid = data.number ? createJid(data.number) : this.client?.user?.id;
     const limit = data.limit || 10;
     const cursor = null;
@@ -4535,7 +4527,7 @@ export class BaileysStartupService extends ChannelStartupService {
     }
   }
 
-  public async fetchCollections(instanceName: string, data: getCollectionsDto) {
+  public async fetchCollections(_instanceName: string, data: getCollectionsDto) {
     const jid = data.number ? createJid(data.number) : this.client?.user?.id;
     const limit = data.limit <= 20 ? data.limit : 20; //(tem esse limite, não sei porque)
 

@@ -1,7 +1,7 @@
 import * as s3Service from '@api/integrations/storage/s3/libs/minio.server';
 import { PrismaRepository } from '@api/repository/repository.service';
 import { WAMonitoringService } from '@api/services/monitor.service';
-import { CreateQueueCommand, DeleteQueueCommand, ListQueuesCommand, SQS } from '@aws-sdk/client-sqs';
+import { CreateQueueCommand, ListQueuesCommand, SQS } from '@aws-sdk/client-sqs';
 import { configService, HttpServer, Log, S3, Sqs } from '@config/env.config';
 import { Logger } from '@config/logger.config';
 
@@ -272,32 +272,5 @@ export class SqsController extends EventController implements EventControllerInt
         return '';
       })
       .filter((event) => event !== '');
-  }
-
-  // Para uma futura feature de exclusão forçada das queues
-  private async removeQueuesByInstance(prefixName: string) {
-    try {
-      const listCommand = new ListQueuesCommand({
-        QueueNamePrefix: `${prefixName}_`,
-      });
-      const listData = await this.sqs.send(listCommand);
-
-      if (!listData.QueueUrls || listData.QueueUrls.length === 0) {
-        this.logger.info(`No queues found for ${prefixName}`);
-        return;
-      }
-
-      for (const queueUrl of listData.QueueUrls) {
-        try {
-          const deleteCommand = new DeleteQueueCommand({ QueueUrl: queueUrl });
-          await this.sqs.send(deleteCommand);
-          this.logger.info(`Queue ${queueUrl} deleted`);
-        } catch (err: any) {
-          this.logger.error(`Error deleting queue ${queueUrl}: ${err.message}`);
-        }
-      }
-    } catch (err: any) {
-      this.logger.error(`Error listing queues for ${prefixName}: ${err.message}`);
-    }
   }
 }

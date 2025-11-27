@@ -2,13 +2,10 @@ import { InstanceDto } from '@api/dto/instance.dto';
 import { MediaDto } from '@api/integrations/storage/s3/dto/media.dto';
 import { getObjectUrl } from '@api/integrations/storage/s3/libs/minio.server';
 import { PrismaRepository } from '@api/repository/repository.service';
-import { Logger } from '@config/logger.config';
 import { BadRequestException } from '@exceptions';
 
 export class S3Service {
   constructor(private readonly prismaRepository: PrismaRepository) {}
-
-  private readonly logger = new Logger('S3Service');
 
   public async getMedia(instance: InstanceDto, query?: MediaDto) {
     try {
