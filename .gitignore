@@ -55,3 +55,4 @@ lerna-debug.log*
 core
 core.*
 *.core
+.genie/CONTEXT.md
