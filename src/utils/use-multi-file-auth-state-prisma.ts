@@ -1,10 +1,13 @@
 import { prismaRepository } from '@api/server.module';
 import { CacheService } from '@api/services/cache.service';
 import { CacheConf, configService } from '@config/env.config';
+import { Logger } from '@config/logger.config';
 import { INSTANCE_DIR } from '@config/path.config';
 import { AuthenticationState, BufferJSON, initAuthCreds, WAProto as proto } from 'baileys';
 import fs from 'fs/promises';
 import path from 'path';
+
+const logger = new Logger('useMultiFileAuthStatePrisma');
 
 const fixFileName = (file: string): string | undefined => {
   if (!file) {
@@ -79,6 +82,7 @@ export default async function useMultiFileAuthStatePrisma(
 ): Promise<{
   state: AuthenticationState;
   saveCreds: () => Promise<void>;
+  removeCreds: () => Promise<void>;
 }> {
   const localFolder = path.join(INSTANCE_DIR, sessionId);
   const localFile = (key: string) => path.join(localFolder, fixFileName(key) + '.json');
@@ -142,6 +146,24 @@ export default async function useMultiFileAuthStatePrisma(
     }
   }
 
+  async function removeCreds(): Promise<void> {
+    const cacheConfig = configService.get<CacheConf>('CACHE');
+
+    // Redis
+    try {
+      if (cacheConfig.REDIS.ENABLED) {
+        await cache.delete(sessionId);
+        logger.info({ action: 'redis.delete', sessionId });
+        return;
+      }
+    } catch (err) {
+      logger.warn({ action: 'redis.delete', sessionId, err });
+    }
+
+    logger.info({ action: 'auth.key.delete', sessionId });
+    await deleteAuthKey(sessionId);
+  }
+
   let creds = await readData('creds');
   if (!creds) {
     creds = initAuthCreds();
@@ -183,5 +205,6 @@ export default async function useMultiFileAuthStatePrisma(
     saveCreds: () => {
       return writeData(creds, 'creds');
     },
+    removeCreds,
   };
 }

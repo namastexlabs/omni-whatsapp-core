@@ -261,6 +261,26 @@ export class BaileysStartupService extends ChannelStartupService {
 
     this.client?.ws?.close();
 
+    // Clean up cryptographic keys from Redis/Prisma to prevent stale session on reconnect
+    const db = this.configService.get<Database>('DATABASE');
+    const cache = this.configService.get<CacheConf>('CACHE');
+    const provider = this.configService.get<ProviderSession>('PROVIDER');
+
+    if (provider?.ENABLED) {
+      const authState = await this.authStateProvider.authStateProvider(this.instance.id);
+      await authState.removeCreds();
+    }
+
+    if (cache?.REDIS.ENABLED && cache?.REDIS.SAVE_INSTANCES) {
+      const authState = await useMultiFileAuthStateRedisDb(this.instance.id, this.cache);
+      await authState.removeCreds();
+    }
+
+    if (db.SAVE_DATA.INSTANCE) {
+      const authState = await useMultiFileAuthStatePrisma(this.instance.id, this.cache);
+      await authState.removeCreds();
+    }
+
     const sessionExists = await this.prismaRepository.session.findFirst({ where: { sessionId: this.instanceId } });
     if (sessionExists) {
       await this.prismaRepository.session.delete({ where: { sessionId: this.instanceId } });

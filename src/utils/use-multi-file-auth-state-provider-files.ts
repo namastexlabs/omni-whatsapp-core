@@ -39,7 +39,13 @@ import { Logger } from '@config/logger.config';
 import { AuthenticationCreds, AuthenticationState, BufferJSON, initAuthCreds, proto, SignalDataTypeMap } from 'baileys';
 import { isNotEmpty } from 'class-validator';
 
-export type AuthState = { state: AuthenticationState; saveCreds: () => Promise<void> };
+export type AuthState = {
+  state: AuthenticationState;
+  saveCreds: () => Promise<void>;
+  removeCreds: () => Promise<void>;
+};
+
+const logger = new Logger('useMultiFileAuthStateProviderFiles');
 
 export class AuthStateProvider {
   constructor(private readonly providerFiles: ProviderFiles) {}
@@ -86,6 +92,15 @@ export class AuthStateProvider {
       return response;
     };
 
+    const removeCreds = async (): Promise<void> => {
+      const [, error] = await this.providerFiles.removeSession(instance);
+      if (error) {
+        return;
+      }
+
+      logger.info({ action: 'remove.session', instance });
+    };
+
     const creds: AuthenticationCreds = (await readData('creds')) || initAuthCreds();
 
     return {
@@ -126,6 +141,7 @@ export class AuthStateProvider {
       saveCreds: async () => {
         return await writeData(creds, 'creds');
       },
+      removeCreds,
     };
   }
 }
