@@ -45,7 +45,7 @@ export abstract class RouterBroker {
     const v = schema ? validate(ref, schema) : { valid: true, errors: [] };
 
     if (!v.valid) {
-      const message: any[] = v.errors.map(({ stack, schema }) => {
+      const message: string[] = v.errors.map(({ stack, schema }) => {
         let message: string;
         if (schema['description']) {
           message = schema['description'];
@@ -55,7 +55,7 @@ export abstract class RouterBroker {
         return message;
       });
       logger.error(message);
-      throw new BadRequestException(message);
+      throw new BadRequestException(...message);
     }
 
     return await execute(instance, ref);

@@ -28,7 +28,7 @@ export class CacheService {
       const data = await this.cache.hGet(key, field);
 
       if (data) {
-        return JSON.parse(data, BufferJSON.reviver);
+        return JSON.parse(data as string, BufferJSON.reviver);
       }
 
       return null;

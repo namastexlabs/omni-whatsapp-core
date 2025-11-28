@@ -74,7 +74,7 @@ export class Logger {
     this.instance = value;
   }
 
-  private console(value: any, type: Type) {
+  private console(value: unknown, type: Type) {
     const types: Type[] = [];
 
     this.configService.get<Log>('LOG').LEVEL.forEach((level) => types.push(Type[level]));
@@ -124,31 +124,31 @@ export class Logger {
     }
   }
 
-  public log(value: any) {
+  public log(value: unknown) {
     this.console(value, Type.LOG);
   }
 
-  public info(value: any) {
+  public info(value: unknown) {
     this.console(value, Type.INFO);
   }
 
-  public warn(value: any) {
+  public warn(value: unknown) {
     this.console(value, Type.WARN);
   }
 
-  public error(value: any) {
+  public error(value: unknown) {
     this.console(value, Type.ERROR);
   }
 
-  public verbose(value: any) {
+  public verbose(value: unknown) {
     this.console(value, Type.VERBOSE);
   }
 
-  public debug(value: any) {
+  public debug(value: unknown) {
     this.console(value, Type.DEBUG);
   }
 
-  public dark(value: any) {
+  public dark(value: unknown) {
     this.console(value, Type.DARK);
   }
 }

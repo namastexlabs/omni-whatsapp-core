@@ -16,11 +16,12 @@ export class LocalCache implements ICache {
     this.conf = this.configService.get<CacheConf>('CACHE')?.LOCAL;
   }
 
-  async get(key: string): Promise<any> {
-    return LocalCache.localCache.get(this.buildKey(key));
+  async get<T = unknown>(key: string): Promise<T | null> {
+    const value = LocalCache.localCache.get<T>(this.buildKey(key));
+    return value !== undefined ? value : null;
   }
 
-  async set(key: string, value: any, ttl?: number) {
+  async set(key: string, value: import('@api/abstract/abstract.cache').JSONValue, ttl?: number) {
     return LocalCache.localCache.set(this.buildKey(key), value, ttl || this.conf.TTL);
   }
 
@@ -65,11 +66,11 @@ export class LocalCache implements ICache {
     }
   }
 
-  async hSet(key: string, field: string, value: any) {
+  async hSet(key: string, field: string, value: import('@api/abstract/abstract.cache').JSONValue) {
     try {
       const json = JSON.stringify(value, BufferJSON.replacer);
 
-      let hash = LocalCache.localCache.get(this.buildKey(key));
+      let hash = LocalCache.localCache.get(this.buildKey(key)) as Record<string, string>;
 
       if (!hash) {
         hash = {};
@@ -82,9 +83,9 @@ export class LocalCache implements ICache {
     }
   }
 
-  async hDelete(key: string, field: string) {
+  async hDelete(key: string, field: string): Promise<number> {
     try {
-      const data = LocalCache.localCache.get(this.buildKey(key)) as object;
+      const data = LocalCache.localCache.get(this.buildKey(key)) as Record<string, unknown>;
 
       if (data && field in data) {
         delete data[field];
@@ -95,6 +96,7 @@ export class LocalCache implements ICache {
       return 0;
     } catch (error) {
       this.logger.error(error);
+      return 0;
     }
   }
 }

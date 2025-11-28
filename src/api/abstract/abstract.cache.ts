@@ -1,11 +1,18 @@
+// JSON-serializable types for cache storage
+export type JSONValue = string | number | boolean | null | JSONObject | JSONArray;
+export interface JSONObject {
+  [key: string]: JSONValue;
+}
+export interface JSONArray extends Array<JSONValue> {}
+
 export interface ICache {
-  get(key: string): Promise<any>;
+  get<T = unknown>(key: string): Promise<T | null>;
 
-  hGet(key: string, field: string): Promise<any>;
+  hGet(key: string, field: string): Promise<unknown>;
 
-  set(key: string, value: any, ttl?: number): void;
+  set(key: string, value: JSONValue, ttl?: number): void;
 
-  hSet(key: string, field: string, value: any): Promise<void>;
+  hSet(key: string, field: string, value: JSONValue): Promise<void>;
 
   has(key: string): Promise<boolean>;
 
@@ -13,7 +20,7 @@ export interface ICache {
 
   delete(key: string | string[]): Promise<number>;
 
-  hDelete(key: string, field: string): Promise<any>;
+  hDelete(key: string, field: string): Promise<number>;
 
   deleteAll(appendCriteria?: string): Promise<number>;
 }

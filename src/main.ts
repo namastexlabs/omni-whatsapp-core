@@ -161,6 +161,24 @@ async function bootstrap() {
 
   initWA();
 
+  // Graceful shutdown handlers to prevent port leaks
+  const shutdown = (signal: string) => {
+    logger.warn(`${signal} received: shutting down gracefully...`);
+    server.close(() => {
+      logger.warn('HTTP server closed');
+      process.exit(0);
+    });
+
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+
   onUnexpectedError();
 }
 

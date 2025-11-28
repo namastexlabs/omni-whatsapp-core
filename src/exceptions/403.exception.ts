@@ -1,7 +1,9 @@
 import { HttpStatus } from '@api/routes/index.router';
 
+import { ErrorMessage } from './400.exception';
+
 export class ForbiddenException {
-  constructor(...objectError: any[]) {
+  constructor(...objectError: ErrorMessage[]) {
     throw {
       status: HttpStatus.FORBIDDEN,
       error: 'Forbidden',

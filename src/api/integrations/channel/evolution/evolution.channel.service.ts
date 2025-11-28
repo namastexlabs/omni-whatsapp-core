@@ -606,7 +606,7 @@ export class EvolutionStartupService extends ChannelStartupService {
     if (file?.buffer) {
       mediaData.audio = file.buffer.toString('base64');
     } else {
-      console.error('El archivo o buffer no está definido correctamente.');
+      this.logger.error('El archivo o buffer no está definido correctamente.');
       throw new Error('File or buffer is undefined.');
     }
 

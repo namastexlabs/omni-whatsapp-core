@@ -18,11 +18,13 @@ export class RedisCache implements ICache {
     this.conf = this.configService.get<CacheConf>('CACHE')?.REDIS;
     this.client = redisClient.getConnection();
   }
-  async get(key: string): Promise<any> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     try {
-      return JSON.parse(await this.client.get(this.buildKey(key)));
+      const value = await this.client.get(this.buildKey(key));
+      return value ? JSON.parse(value) : null;
     } catch (error) {
       this.logger.error(error);
+      return null;
     }
   }
 
@@ -40,7 +42,7 @@ export class RedisCache implements ICache {
     }
   }
 
-  async set(key: string, value: any, ttl?: number) {
+  async set(key: string, value: import('@api/abstract/abstract.cache').JSONValue, ttl?: number) {
     try {
       await this.client.setEx(this.buildKey(key), ttl || this.conf?.TTL, JSON.stringify(value));
     } catch (error) {
@@ -48,7 +50,7 @@ export class RedisCache implements ICache {
     }
   }
 
-  async hSet(key: string, field: string, value: any) {
+  async hSet(key: string, field: string, value: import('@api/abstract/abstract.cache').JSONValue) {
     try {
       const json = JSON.stringify(value, BufferJSON.replacer);
 
@@ -74,11 +76,12 @@ export class RedisCache implements ICache {
     }
   }
 
-  async hDelete(key: string, field: string) {
+  async hDelete(key: string, field: string): Promise<number> {
     try {
       return await this.client.hDel(this.buildKey(key), field);
     } catch (error) {
       this.logger.error(error);
+      return 0;
     }
   }
 
