@@ -4,7 +4,12 @@ This document provides comprehensive guidelines for AI agents (Claude, GPT, Curs
 
 ## Project Overview
 
-**Evolution API** is a production-ready, multi-tenant WhatsApp API platform built with Node.js, TypeScript, and Express.js. It supports multiple WhatsApp providers and extensive integrations with chatbots, CRM systems, and messaging platforms.
+**Evolution API** is a powerful, production-ready REST API for WhatsApp communication that supports multiple WhatsApp providers:
+- **Baileys** (WhatsApp Web) - Open-source WhatsApp Web client
+- **Meta Business API** - Official WhatsApp Business API
+- **Evolution API** - Custom WhatsApp integration
+
+Built with **Node.js 20+**, **TypeScript 5+**, and **Express.js**, it provides extensive integrations with chatbots, CRM systems, and messaging platforms in a **multi-tenant architecture**.
 
 ## Project Structure & Module Organization
 
@@ -237,12 +242,76 @@ const result = await this.prismaRepository.instance.findUnique({
 - **Base classes**: Extend `BaseChatbotService` and `BaseChatbotController`
 - **Trigger system**: Support keyword, regex, and advanced triggers
 - **Session management**: Handle conversation state per user
-- **Available integrations**: EvolutionBot, OpenAI, Dify, Typebot, Chatwoot, Flowise, N8N, EvoAI
+- **Available integrations**:
+  - **EvolutionBot**: Native chatbot with trigger system
+  - **Chatwoot**: Customer service platform integration
+  - **Typebot**: Visual chatbot flow builder
+  - **OpenAI**: AI capabilities including GPT and Whisper (audio transcription)
+  - **Dify**: AI agent workflow platform
+  - **Flowise**: LangChain visual builder
+  - **N8N**: Workflow automation platform
+  - **EvoAI**: Custom AI integration
 
 ### Event Integration
 - **Internal events**: EventEmitter2 for application events
-- **External events**: WebSocket, RabbitMQ, SQS, NATS, Pusher
+- **External events**:
+  - **WebSocket**: Real-time Socket.io connections
+  - **RabbitMQ**: Message queue for async processing
+  - **Amazon SQS**: Cloud-based message queuing
+  - **NATS**: High-performance messaging system
+  - **Pusher**: Real-time push notifications
 - **Webhook delivery**: Reliable delivery with retry logic
+
+### Storage Integration
+- **AWS S3**: Cloud object storage
+- **MinIO**: Self-hosted S3-compatible storage
+- Media file management and URL generation
+
+## Important Implementation Details
+
+### WhatsApp Instance Management
+- Each WhatsApp connection is an "instance" with unique name
+- Instance data stored in database with connection state
+- Session persistence in database or file system (configurable)
+- Automatic reconnection handling with exponential backoff
+
+### Message Queue Architecture
+- Supports RabbitMQ, Amazon SQS, and WebSocket for events
+- Event types: message.received, message.sent, connection.update, etc.
+- Configurable per instance which events to send
+
+### Media Handling
+- Local storage or S3/MinIO for media files
+- Automatic media download from WhatsApp
+- Media URL generation for external access
+- Support for audio transcription via OpenAI
+
+### Multi-tenancy Support
+- Instance isolation at database level
+- Separate webhook configurations per instance
+- Independent integration settings per instance
+
+## Environment Configuration
+
+Key environment variables are defined in `.env.example`. The system uses a strongly-typed configuration system via `src/config/env.config.ts`.
+
+### Critical Configurations
+```bash
+# Database
+DATABASE_PROVIDER=postgresql  # or mysql
+DATABASE_CONNECTION_URI=postgresql://user:pass@host:5432/db
+
+# Authentication
+AUTHENTICATION_API_KEY=your-global-api-key
+
+# Cache
+REDIS_ENABLED=true
+REDIS_URI=redis://localhost:6379
+
+# Message Queues
+RABBITMQ_ENABLED=false
+SQS_ENABLED=false
+```
 
 ## Testing Guidelines
 
@@ -352,4 +421,19 @@ export DATABASE_PROVIDER=postgresql  # or mysql
 - **Error tracking**: Comprehensive error scenarios
 - **Health checks**: Instance status and connection monitoring
 - **Telemetry**: Usage analytics (non-sensitive data only)
+
+## Deployment Considerations
+
+### Production Deployment
+- **Docker support**: `Dockerfile` and `docker-compose.yaml` for containerization
+- **Graceful shutdown**: Proper connection cleanup on termination
+- **Health checks**: Endpoints for monitoring and load balancer integration
+- **Error tracking**: Sentry integration for production error monitoring
+- **Telemetry**: Usage analytics (non-sensitive data only)
+
+### Environment Requirements
+- **Node.js 20+**: Required runtime version
+- **PostgreSQL or MySQL**: Database provider
+- **Redis** (optional): Recommended for production caching
+- **S3/MinIO** (optional): For media storage at scale
 
