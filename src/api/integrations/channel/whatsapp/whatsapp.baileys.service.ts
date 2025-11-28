@@ -86,6 +86,7 @@ import { sendTelemetry } from '@utils/sendTelemetry';
 import useMultiFileAuthStatePrisma from '@utils/use-multi-file-auth-state-prisma';
 import { AuthStateProvider } from '@utils/use-multi-file-auth-state-provider-files';
 import { useMultiFileAuthStateRedisDb } from '@utils/use-multi-file-auth-state-redis-db';
+import decodeAudio from 'audio-decode';
 import axios from 'axios';
 import makeWASocket, {
   AnyMessageContent,
@@ -2310,8 +2311,9 @@ export class BaileysStartupService extends ChannelStartupService {
     if (status.type === 'audio') {
       const convert = await this.processAudioMp4(status.content);
       if (Buffer.isBuffer(convert)) {
+        const waveform = await this.generateWaveform(convert);
         const result = {
-          content: { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus' },
+          content: { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus', waveform },
           option: { statusJidList: status.statusJidList },
         };
 
@@ -2692,6 +2694,58 @@ export class BaileysStartupService extends ChannelStartupService {
     });
   }
 
+  /**
+   * Generates a 64-byte waveform for PTT visualization
+   * WhatsApp expects exactly 64 values in range 0-100
+   */
+  private async generateWaveform(audioBuffer: Buffer): Promise<Uint8Array> {
+    const TIMEOUT_MS = 5000;
+    const WAVEFORM_LENGTH = 64;
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Waveform timeout')), TIMEOUT_MS),
+      );
+
+      const waveformPromise = (async () => {
+        const audioData = await decodeAudio(audioBuffer);
+        const channelData = audioData.getChannelData(0);
+        const samples = channelData.length;
+        const samplesPerBlock = Math.floor(samples / WAVEFORM_LENGTH);
+
+        const waveform = new Uint8Array(WAVEFORM_LENGTH);
+        let maxAmplitude = 0;
+        const blockAmplitudes: number[] = [];
+
+        // Calculate RMS amplitude per block
+        for (let i = 0; i < WAVEFORM_LENGTH; i++) {
+          const start = i * samplesPerBlock;
+          const end = Math.min(start + samplesPerBlock, samples);
+          let sumSquares = 0;
+          for (let j = start; j < end; j++) {
+            sumSquares += channelData[j] * channelData[j];
+          }
+          const rms = Math.sqrt(sumSquares / (end - start));
+          blockAmplitudes.push(rms);
+          if (rms > maxAmplitude) maxAmplitude = rms;
+        }
+
+        // Normalize to 0-100 range
+        for (let i = 0; i < WAVEFORM_LENGTH; i++) {
+          waveform[i] = maxAmplitude > 0 ? Math.round((blockAmplitudes[i] / maxAmplitude) * 100) : 0;
+        }
+
+        return waveform;
+      })();
+
+      return await Promise.race([waveformPromise, timeoutPromise]);
+    } catch (error) {
+      this.logger.warn(`Waveform generation failed: ${error.message}`);
+      // Graceful fallback - flat 50% amplitude waveform
+      return new Uint8Array(WAVEFORM_LENGTH).fill(50);
+    }
+  }
+
   public async processAudio(audio: string): Promise<Buffer> {
     const audioConverterConfig = this.configService.get<AudioConverter>('AUDIO_CONVERTER');
     if (audioConverterConfig.API_URL) {
@@ -2814,9 +2868,11 @@ export class BaileysStartupService extends ChannelStartupService {
       const convert = await this.processAudio(mediaData.audio);
 
       if (Buffer.isBuffer(convert)) {
+        const waveform = await this.generateWaveform(convert);
+
         const result = this.sendMessageWithTyping<AnyMessageContent>(
           data.number,
-          { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus' },
+          { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus', waveform },
           { presence: 'recording', delay: data?.delay },
           isIntegration,
         );
@@ -2827,12 +2883,18 @@ export class BaileysStartupService extends ChannelStartupService {
       }
     }
 
+    const audioData = isURL(data.audio) ? { url: data.audio } : Buffer.from(data.audio, 'base64');
+
+    // Generate waveform only for buffers (not URLs)
+    const waveform = Buffer.isBuffer(audioData) ? await this.generateWaveform(audioData) : undefined;
+
     return await this.sendMessageWithTyping<AnyMessageContent>(
       data.number,
       {
-        audio: isURL(data.audio) ? { url: data.audio } : Buffer.from(data.audio, 'base64'),
+        audio: audioData,
         ptt: true,
         mimetype: 'audio/ogg; codecs=opus',
+        ...(waveform && { waveform }),
       },
       { presence: 'recording', delay: data?.delay },
       isIntegration,
