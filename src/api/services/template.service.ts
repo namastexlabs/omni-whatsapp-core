@@ -1,8 +1,9 @@
 import { InstanceDto } from '@api/dto/instance.dto';
-import { TemplateDto } from '@api/dto/template.dto';
+import { TemplateDeleteDto, TemplateDto, TemplateEditDto } from '@api/dto/template.dto';
 import { PrismaRepository } from '@api/repository/repository.service';
 import { ConfigService, WaBusiness } from '@config/env.config';
 import { Logger } from '@config/logger.config';
+import { Prisma } from '@prisma/client';
 import axios from 'axios';
 
 import { WAMonitoringService } from './monitor.service';
@@ -18,6 +19,15 @@ export class TemplateService {
 
   private businessId: string;
   private token: string;
+
+  private throwApiError(response: any, action: string): never {
+    if (response?.error) {
+      const metaError = new Error(response.error.message || 'WhatsApp API Error');
+      (metaError as any).template = response.error;
+      throw metaError;
+    }
+    throw new Error(`Error to ${action} template`);
+  }
 
   public async find(instance: InstanceDto) {
     const getInstance = await this.waMonitor.waInstances[instance.instanceName].instance;
@@ -60,14 +70,7 @@ export class TemplateService {
       const response = await this.requestTemplate(postData, 'POST');
 
       if (!response || response.error) {
-        // If there's an error from WhatsApp API, throw it with the real error data
-        if (response && response.error) {
-          // Create an error object that includes the template field for Meta errors
-          const metaError = new Error(response.error.message || 'WhatsApp API Error');
-          (metaError as any).template = response.error;
-          throw metaError;
-        }
-        throw new Error('Error to create template');
+        this.throwApiError(response, 'create');
       }
 
       const template = await this.prismaRepository.template.create({
@@ -88,10 +91,7 @@ export class TemplateService {
     }
   }
 
-  public async edit(
-    instance: InstanceDto,
-    data: { templateId: string; category?: string; components?: any; allowCategoryChange?: boolean; ttl?: number },
-  ) {
+  public async edit(instance: InstanceDto, data: TemplateEditDto) {
     const getInstance = await this.waMonitor.waInstances[instance.instanceName].instance;
     if (!getInstance) {
       throw new Error('Instance not found');
@@ -109,18 +109,13 @@ export class TemplateService {
     const response = await this.requestEditTemplate(data.templateId, payload);
 
     if (!response || response.error) {
-      if (response && response.error) {
-        const metaError = new Error(response.error.message || 'WhatsApp API Error');
-        (metaError as any).template = response.error;
-        throw metaError;
-      }
-      throw new Error('Error to edit template');
+      this.throwApiError(response, 'edit');
     }
 
     return response;
   }
 
-  public async delete(instance: InstanceDto, data: { name: string; hsmId?: string }) {
+  public async delete(instance: InstanceDto, data: TemplateDeleteDto) {
     const getInstance = await this.waMonitor.waInstances[instance.instanceName].instance;
     if (!getInstance) {
       throw new Error('Instance not found');
@@ -132,23 +127,17 @@ export class TemplateService {
     const response = await this.requestDeleteTemplate({ name: data.name, hsm_id: data.hsmId });
 
     if (!response || response.error) {
-      if (response && response.error) {
-        const metaError = new Error(response.error.message || 'WhatsApp API Error');
-        (metaError as any).template = response.error;
-        throw metaError;
-      }
-      throw new Error('Error to delete template');
+      this.throwApiError(response, 'delete');
     }
 
     try {
       // Best-effort local cleanup of stored template metadata
+      const conditions: Prisma.TemplateWhereInput[] = [{ name: data.name, instanceId: getInstance.id }];
+      if (data.hsmId) {
+        conditions.push({ templateId: data.hsmId, instanceId: getInstance.id });
+      }
       await this.prismaRepository.template.deleteMany({
-        where: {
-          OR: [
-            { name: data.name, instanceId: getInstance.id },
-            data.hsmId ? { templateId: data.hsmId, instanceId: getInstance.id } : undefined,
-          ].filter(Boolean) as any,
-        },
+        where: { OR: conditions },
       });
     } catch (err) {
       this.logger.warn(
