@@ -2900,9 +2900,9 @@ export class BaileysStartupService extends ChannelStartupService {
       if (Buffer.isBuffer(convert)) {
         const waveform = await this.generateWaveform(convert);
 
-        const result = this.sendMessageWithTyping<AnyMessageContent>(
+        const result = this.sendMessageWithTyping(
           data.number,
-          { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus', waveform },
+          { audio: convert, ptt: true, mimetype: 'audio/ogg; codecs=opus', waveform } as AnyMessageContent,
           { presence: 'recording', delay: data?.delay },
           isIntegration,
         );
@@ -2918,14 +2918,14 @@ export class BaileysStartupService extends ChannelStartupService {
     // Generate waveform only for buffers (not URLs)
     const waveform = Buffer.isBuffer(audioData) ? await this.generateWaveform(audioData) : undefined;
 
-    return await this.sendMessageWithTyping<AnyMessageContent>(
+    return await this.sendMessageWithTyping(
       data.number,
       {
         audio: audioData,
         ptt: true,
         mimetype: 'audio/ogg; codecs=opus',
         ...(waveform && { waveform }),
-      },
+      } as AnyMessageContent,
       { presence: 'recording', delay: data?.delay },
       isIntegration,
     );
