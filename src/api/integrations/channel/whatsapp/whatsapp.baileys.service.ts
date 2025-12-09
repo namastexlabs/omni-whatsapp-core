@@ -976,6 +976,7 @@ export class BaileysStartupService extends ChannelStartupService {
                 'Invalid PreKey ID',
                 'No session record',
                 'No session found to decrypt message',
+                'Message absent from node',
               ].some((err) => param?.includes?.(err)),
             )
           ) {
@@ -4680,7 +4681,6 @@ export class BaileysStartupService extends ChannelStartupService {
         AND: [
           keyFilters?.id ? { key: { path: ['id'], equals: keyFilters?.id } } : {},
           keyFilters?.fromMe ? { key: { path: ['fromMe'], equals: keyFilters?.fromMe } } : {},
-          keyFilters?.remoteJid ? { key: { path: ['remoteJid'], equals: keyFilters?.remoteJid } } : {},
           keyFilters?.participant ? { key: { path: ['participant'], equals: keyFilters?.participant } } : {},
           {
             OR: [
@@ -4710,7 +4710,6 @@ export class BaileysStartupService extends ChannelStartupService {
         AND: [
           keyFilters?.id ? { key: { path: ['id'], equals: keyFilters?.id } } : {},
           keyFilters?.fromMe ? { key: { path: ['fromMe'], equals: keyFilters?.fromMe } } : {},
-          keyFilters?.remoteJid ? { key: { path: ['remoteJid'], equals: keyFilters?.remoteJid } } : {},
           keyFilters?.participant ? { key: { path: ['participant'], equals: keyFilters?.participant } } : {},
           {
             OR: [
