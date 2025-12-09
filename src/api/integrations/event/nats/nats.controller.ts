@@ -65,6 +65,7 @@ export class NatsController extends EventController implements EventControllerIn
     const logEnabled = configService.get<Log>('LOG').LEVEL.includes('WEBHOOKS');
 
     const message = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,

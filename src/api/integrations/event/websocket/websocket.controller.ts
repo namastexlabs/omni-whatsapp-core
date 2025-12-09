@@ -130,6 +130,7 @@ export class WebsocketController extends EventController implements EventControl
     const configEv = event.replace(/[.-]/gm, '_').toUpperCase();
     const logEnabled = configService.get<Log>('LOG').LEVEL.includes('WEBSOCKET');
     const message = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,

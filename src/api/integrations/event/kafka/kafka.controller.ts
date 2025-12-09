@@ -284,6 +284,7 @@ export class KafkaController extends EventController implements EventControllerI
     const logEnabled = configService.get<Log>('LOG').LEVEL.includes('WEBHOOKS');
 
     const message = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,

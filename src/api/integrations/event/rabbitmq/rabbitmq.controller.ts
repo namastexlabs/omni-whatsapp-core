@@ -233,6 +233,7 @@ export class RabbitmqController extends EventController implements EventControll
     const logEnabled = configService.get<Log>('LOG').LEVEL.includes('WEBHOOKS');
 
     const message = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,

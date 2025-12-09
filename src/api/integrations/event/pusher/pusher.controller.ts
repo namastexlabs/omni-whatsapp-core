@@ -133,6 +133,7 @@ export class PusherController extends EventController implements EventController
     const enabledLog = configService.get<Log>('LOG').LEVEL.includes('WEBHOOKS');
     const eventName = event.replace(/_/g, '.').toLowerCase();
     const pusherData = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,

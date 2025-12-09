@@ -128,6 +128,7 @@ export class SqsController extends EventController implements EventControllerInt
         const sqsUrl = `https://sqs.${sqsConfig.REGION}.amazonaws.com/${sqsConfig.ACCOUNT_ID}/${queueName}`;
 
         const message = {
+          ...(extra ?? {}),
           event,
           instance: instanceName,
           dataType: 'json',

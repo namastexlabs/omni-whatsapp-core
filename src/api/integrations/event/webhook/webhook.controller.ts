@@ -90,6 +90,7 @@ export class WebhookController extends EventController implements EventControlle
     const regex = /^(https?:\/\/)/;
 
     const webhookData = {
+      ...(extra ?? {}),
       event,
       instance: instanceName,
       data,
