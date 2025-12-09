@@ -124,9 +124,14 @@ model OmniUserExternalIds {
 }
 
 model OmniUserPreferences {
-  id Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement()) @map("id")
+  sessionId String  @db.VarChar(255) @map("session_id")
+  key       String  @db.VarChar(100) @map("key")
+  value     String? @db.Text @map("value")
+
   @@map("omni_user_preferences")
-  @@ignore
+  @@unique([sessionId, key], map: "uq_user_preferences_session_key")
+  @@index([sessionId], map: "ix_omni_user_preferences_session_id")
 }
 
 model OmniUsers {
