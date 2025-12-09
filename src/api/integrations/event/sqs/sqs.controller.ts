@@ -93,6 +93,7 @@ export class SqsController extends EventController implements EventControllerInt
     sender,
     apiKey,
     integration,
+    extra,
   }: EmitData): Promise<void> {
     if (integration && !integration.includes('sqs')) {
       return;

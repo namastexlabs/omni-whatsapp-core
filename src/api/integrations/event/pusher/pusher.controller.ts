@@ -121,6 +121,7 @@ export class PusherController extends EventController implements EventController
     apiKey,
     local,
     integration,
+    extra,
   }: EmitData): Promise<void> {
     if (integration && !integration.includes('pusher')) {
       return;

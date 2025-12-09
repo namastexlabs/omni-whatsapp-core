@@ -118,6 +118,7 @@ export class WebsocketController extends EventController implements EventControl
     sender,
     apiKey,
     integration,
+    extra,
   }: EmitData): Promise<void> {
     if (integration && !integration.includes('websocket')) {
       return;

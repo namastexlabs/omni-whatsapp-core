@@ -47,6 +47,7 @@ export class NatsController extends EventController implements EventControllerIn
     sender,
     apiKey,
     integration,
+    extra,
   }: EmitData): Promise<void> {
     if (integration && !integration.includes('nats')) {
       return;
