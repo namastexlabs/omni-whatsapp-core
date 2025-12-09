@@ -19,6 +19,9 @@ import { Logger } from '@config/logger.config';
 import { BadRequestException } from '@exceptions';
 import { isBase64, isURL } from 'class-validator';
 import emojiRegex from 'emoji-regex';
+import { Multer } from 'multer';
+
+type MulterFile = Multer.File;
 
 const regex = emojiRegex();
 
@@ -42,7 +45,7 @@ export class SendMessageController {
     return await this.waMonitor.waInstances[instanceName].textMessage(data);
   }
 
-  public async sendMedia({ instanceName }: InstanceDto, data: SendMediaDto, file?: any) {
+  public async sendMedia({ instanceName }: InstanceDto, data: SendMediaDto, file?: MulterFile) {
     if (isBase64(data?.media) && !data?.fileName && data?.mediatype === 'document') {
       throw new BadRequestException('For base64 the file name must be informed.');
     }
@@ -53,21 +56,21 @@ export class SendMessageController {
     throw new BadRequestException('Owned media must be a url or base64');
   }
 
-  public async sendPtv({ instanceName }: InstanceDto, data: SendPtvDto, file?: any) {
+  public async sendPtv({ instanceName }: InstanceDto, data: SendPtvDto, file?: MulterFile) {
     if (file || isURL(data?.video) || isBase64(data?.video)) {
       return await this.waMonitor.waInstances[instanceName].ptvMessage(data, file);
     }
     throw new BadRequestException('Owned media must be a url or base64');
   }
 
-  public async sendSticker({ instanceName }: InstanceDto, data: SendStickerDto, file?: any) {
+  public async sendSticker({ instanceName }: InstanceDto, data: SendStickerDto, file?: MulterFile) {
     if (file || isURL(data.sticker) || isBase64(data.sticker)) {
       return await this.waMonitor.waInstances[instanceName].mediaSticker(data, file);
     }
     throw new BadRequestException('Owned media must be a url or base64');
   }
 
-  public async sendWhatsAppAudio({ instanceName }: InstanceDto, data: SendAudioDto, file?: any) {
+  public async sendWhatsAppAudio({ instanceName }: InstanceDto, data: SendAudioDto, file?: MulterFile) {
     if (file?.buffer || isURL(data.audio) || isBase64(data.audio)) {
       // Si file existe y tiene buffer, o si es una URL o Base64, continúa
       return await this.waMonitor.waInstances[instanceName].audioWhatsapp(data, file);
@@ -104,7 +107,7 @@ export class SendMessageController {
     return await this.waMonitor.waInstances[instanceName].pollMessage(data);
   }
 
-  public async sendStatus({ instanceName }: InstanceDto, data: SendStatusDto, file?: any) {
+  public async sendStatus({ instanceName }: InstanceDto, data: SendStatusDto, file?: MulterFile) {
     return await this.waMonitor.waInstances[instanceName].statusMessage(data, file);
   }
 }
