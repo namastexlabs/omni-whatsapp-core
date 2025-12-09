@@ -61,6 +61,8 @@ model Instance {
   Media                   Media[]
   Template                Template[]
   Pusher                  Pusher?
+
+  @@map("evo_Instance")
 }
 
 model Session {
@@ -69,6 +71,8 @@ model Session {
   creds     String?  @db.Text
   createdAt DateTime @default(now()) @db.Timestamp
   Instance  Instance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("evo_Session")
 }
 
 model Chat {
@@ -84,6 +88,7 @@ model Chat {
 
   @@index([instanceId])
   @@index([remoteJid])
+  @@map("evo_Chat")
 }
 
 model Contact {
@@ -99,6 +104,7 @@ model Contact {
   @@unique([remoteJid, instanceId])
   @@index([remoteJid])
   @@index([instanceId])
+  @@map("evo_Contact")
 }
 
 model Message {
@@ -119,6 +125,7 @@ model Message {
   status           String?         @db.VarChar(30)
 
   @@index([instanceId])
+  @@map("evo_Message")
 }
 
 model MessageUpdate {
@@ -136,6 +143,7 @@ model MessageUpdate {
 
   @@index([instanceId])
   @@index([messageId])
+  @@map("evo_MessageUpdate")
 }
 
 model Webhook {
@@ -152,6 +160,7 @@ model Webhook {
   instanceId      String    @unique
 
   @@index([instanceId])
+  @@map("evo_Webhook")
 }
 
 model Label {
@@ -166,6 +175,7 @@ model Label {
   instanceId   String
 
   @@unique([labelId, instanceId])
+  @@map("evo_Label")
 }
 
 model Proxy {
@@ -180,6 +190,8 @@ model Proxy {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Proxy")
 }
 
 model Setting {
@@ -198,6 +210,7 @@ model Setting {
   instanceId      String    @unique
 
   @@index([instanceId])
+  @@map("evo_Setting")
 }
 
 model Rabbitmq {
@@ -208,6 +221,8 @@ model Rabbitmq {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Rabbitmq")
 }
 
 model Nats {
@@ -218,6 +233,8 @@ model Nats {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Nats")
 }
 
 model Sqs {
@@ -228,6 +245,8 @@ model Sqs {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Sqs")
 }
 
 model Kafka {
@@ -238,6 +257,8 @@ model Kafka {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Kafka")
 }
 
 model Websocket {
@@ -248,6 +269,8 @@ model Websocket {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Websocket")
 }
 
 model Pusher {
@@ -263,6 +286,8 @@ model Pusher {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String    @unique
+
+  @@map("evo_Pusher")
 }
 
 model Media {
@@ -275,6 +300,8 @@ model Media {
   messageId  String    @unique
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String
+
+  @@map("evo_Media")
 }
 
 model Template {
@@ -287,6 +314,8 @@ model Template {
   updatedAt  DateTime  @updatedAt @db.Timestamp
   Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId String
+
+  @@map("evo_Template")
 }
 
 model IsOnWhatsapp {
@@ -296,5 +325,7 @@ model IsOnWhatsapp {
   lid        String?  @db.VarChar(100)
   createdAt  DateTime @default(now()) @db.Timestamp
   updatedAt  DateTime @updatedAt @db.Timestamp
+
+  @@map("evo_IsOnWhatsapp")
 }
 
