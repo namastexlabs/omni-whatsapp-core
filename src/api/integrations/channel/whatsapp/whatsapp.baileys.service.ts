@@ -2865,6 +2865,8 @@ export class BaileysStartupService extends ChannelStartupService {
           'pipe:1',
         ];
 
+        this.logger.verbose(`ffmpeg command: ${ffmpegPath.path} ${ffmpegArgs.join(' ')}`);
+
         const ffmpegProcess = spawn(ffmpegPath.path, ffmpegArgs);
 
         const outputChunks: Buffer[] = [];
