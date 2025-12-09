@@ -82,62 +82,212 @@ model OmniAccessRules {
 }
 
 model OmniGlobalSettings {
-  id Int @id @default(autoincrement())
+  id               Int      @id @default(autoincrement()) @map("id")
+  key              String   @db.VarChar(255) @map("key")
+  value            String?  @db.Text @map("value")
+  valueType        String   @db.VarChar(20) @default("string") @map("value_type")
+  category         String?  @db.VarChar(255) @map("category")
+  description      String?  @db.Text @map("description")
+  isSecret         Boolean  @default(false) @db.Boolean @map("is_secret")
+  isRequired       Boolean  @default(false) @db.Boolean @map("is_required")
+  defaultValue     String?  @db.Text @map("default_value")
+  validationRules  String?  @db.Text @map("validation_rules")
+  createdAt        DateTime @default(now()) @db.Timestamp @map("created_at")
+  updatedAt        DateTime @default(now()) @db.Timestamp @map("updated_at")
+  createdBy        String?  @db.VarChar(255) @map("created_by")
+  updatedBy        String?  @db.VarChar(255) @map("updated_by")
+
   @@map("omni_global_settings")
-  @@ignore
-}
-
-model OmniInstanceConfigs {
-  id Int @id @default(autoincrement())
-  @@map("omni_instance_configs")
-  @@ignore
-}
-
-model OmniMessageTraces {
-  trace_id String @id
-  @@map("omni_message_traces")
-  @@ignore
+  @@unique([key], map: "ix_omni_global_settings_key")
+  @@index([category], map: "ix_omni_global_settings_category")
 }
 
 model OmniSettingChangeHistory {
-  id Int @id @default(autoincrement())
+  id           Int      @id @default(autoincrement()) @map("id")
+  settingId    Int      @map("setting_id")
+  oldValue     String?  @db.Text @map("old_value")
+  newValue     String?  @db.Text @map("new_value")
+  changedBy    String?  @db.VarChar(255) @map("changed_by")
+  changedAt    DateTime @default(now()) @db.Timestamp @map("changed_at")
+  changeReason String?  @db.Text @map("change_reason")
+
   @@map("omni_setting_change_history")
-  @@ignore
+  @@index([settingId], map: "ix_omni_setting_change_history_setting_id")
+  @@index([changedAt], map: "ix_omni_setting_change_history_changed_at")
 }
 
-model OmniTracePayloads {
-  id Int @id @default(autoincrement())
-  @@map("omni_trace_payloads")
-  @@ignore
+model OmniInstanceConfigs {
+  id                        Int      @id @default(autoincrement()) @map("id")
+  name                      String   @db.VarChar(255) @map("name")
+  channelType               String   @db.VarChar(50) @default("whatsapp") @map("channel_type")
+  evolutionUrl              String?  @db.Text @map("evolution_url")
+  evolutionKey              String?  @db.Text @map("evolution_key")
+  whatsappInstance          String?  @db.VarChar(255) @map("whatsapp_instance")
+  sessionIdPrefix           String?  @db.VarChar(255) @map("session_id_prefix")
+  webhookBase64             Boolean  @default(true) @db.Boolean @map("webhook_base64")
+  discordBotToken           String?  @db.Text @map("discord_bot_token")
+  discordClientId           String?  @db.Text @map("discord_client_id")
+  discordGuildId            String?  @db.Text @map("discord_guild_id")
+  discordDefaultChannelId   String?  @db.Text @map("discord_default_channel_id")
+  discordVoiceEnabled       Boolean? @default(false) @db.Boolean @map("discord_voice_enabled")
+  discordSlashCommandsEnabled Boolean? @default(true) @db.Boolean @map("discord_slash_commands_enabled")
+  discordWebhookUrl         String?  @db.Text @map("discord_webhook_url")
+  discordPermissions        Int?     @map("discord_permissions")
+  agentInstanceType         String?  @db.VarChar(255) @default("automagik") @map("agent_instance_type")
+  agentApiUrl               String?  @db.Text @map("agent_api_url")
+  agentApiKey               String?  @db.Text @map("agent_api_key")
+  agentId                   String?  @db.VarChar(255) @default("default") @map("agent_id")
+  agentType                 String   @db.VarChar(50) @default("agent") @map("agent_type")
+  agentTimeout              Int?     @default(60) @map("agent_timeout")
+  agentStreamMode           Boolean  @default(false) @db.Boolean @map("agent_stream_mode")
+  defaultAgent              String?  @db.VarChar(255) @map("default_agent")
+  automagikInstanceId       String?  @db.VarChar(255) @map("automagik_instance_id")
+  automagikInstanceName     String?  @db.VarChar(255) @map("automagik_instance_name")
+  profileName               String?  @db.VarChar(255) @map("profile_name")
+  profilePicUrl             String?  @db.Text @map("profile_pic_url")
+  ownerJid                  String?  @db.VarChar(255) @map("owner_jid")
+  isDefault                 Boolean? @default(false) @db.Boolean @map("is_default")
+  isActive                  Boolean? @default(false) @db.Boolean @map("is_active")
+  enableAutoSplit           Boolean  @default(true) @db.Boolean @map("enable_auto_split")
+  createdAt                 DateTime @default(now()) @db.Timestamp @map("created_at")
+  updatedAt                 DateTime @default(now()) @db.Timestamp @map("updated_at")
+
+  @@map("omni_instance_configs")
+  @@unique([name], map: "ix_omni_instance_configs_name")
+  @@index([isDefault], map: "ix_omni_instance_configs_is_default")
+  @@index([isActive], map: "ix_omni_instance_configs_is_active")
+  @@index([channelType], map: "ix_omni_instance_configs_channel_type")
+}
+
+model OmniUsers {
+  id                       String   @id @map("id")
+  phoneNumber              String   @db.VarChar(255) @map("phone_number")
+  whatsappJid              String   @db.VarChar(255) @map("whatsapp_jid")
+  instanceName             String   @db.VarChar(255) @map("instance_name")
+  displayName              String?  @db.VarChar(255) @map("display_name")
+  lastSessionNameInteraction String? @db.VarChar(255) @map("last_session_name_interaction")
+  lastAgentUserId          String?  @db.VarChar(255) @map("last_agent_user_id")
+  lastSeenAt               DateTime? @db.Timestamp @default(now()) @map("last_seen_at")
+  messageCount             Int?     @default(0) @map("message_count")
+  createdAt                DateTime? @db.Timestamp @default(now()) @map("created_at")
+  updatedAt                DateTime? @db.Timestamp @default(now()) @map("updated_at")
+
+  @@map("omni_users")
+  @@index([phoneNumber], map: "ix_omni_users_phone_number")
+  @@index([whatsappJid], map: "ix_omni_users_whatsapp_jid")
+  @@index([instanceName], map: "ix_omni_users_instance_name")
+  @@index([lastSessionNameInteraction], map: "ix_omni_users_last_session_name_interaction")
+  @@index([lastSeenAt], map: "ix_omni_users_last_seen_at")
 }
 
 model OmniUserExternalIds {
-  id          Int     @id @default(autoincrement()) @map("id")
-  provider    String  @db.VarChar(100) @map("provider")
-  externalId  String  @db.VarChar(255) @map("external_id")
-  instanceName String? @db.VarChar(255) @map("instance_name")
+  id           Int      @id @default(autoincrement()) @map("id")
+  userId       String   @db.VarChar(255) @map("user_id")
+  provider     String   @db.VarChar(255) @map("provider")
+  externalId   String   @db.VarChar(255) @map("external_id")
+  instanceName String?  @db.VarChar(255) @map("instance_name")
+  createdAt    DateTime @default(now()) @db.Timestamp @map("created_at")
+  updatedAt    DateTime @default(now()) @db.Timestamp @map("updated_at")
 
   @@map("omni_user_external_ids")
   @@unique([provider, externalId, instanceName], map: "uq_user_external_provider_instance")
+  @@index([userId], map: "ix_omni_user_external_ids_user_id")
   @@index([provider], map: "ix_omni_user_external_ids_provider")
   @@index([externalId], map: "ix_omni_user_external_ids_external_id")
+  @@index([instanceName], map: "ix_omni_user_external_ids_instance_name")
+}
+
+model OmniAccessRules {
+  id           Int       @id @default(autoincrement()) @map("id")
+  instanceName String?   @db.VarChar(255) @map("instance_name")
+  phoneNumber  String    @db.VarChar(255) @map("phone_number")
+  ruleType     String    @db.VarChar(10) @map("rule_type")
+  createdAt    DateTime? @default(now()) @db.Timestamp @map("created_at")
+  updatedAt    DateTime? @default(now()) @db.Timestamp @map("updated_at")
+
+  @@map("omni_access_rules")
+  @@unique([instanceName, phoneNumber, ruleType], map: "uq_access_rules_scope_phone_rule")
+  @@index([instanceName], map: "ix_omni_access_rules_instance_name")
+  @@index([phoneNumber], map: "ix_omni_access_rules_phone_number")
+}
+
+model OmniMessageTraces {
+  traceId                   String   @id @map("trace_id")
+  instanceName              String?  @db.VarChar(255) @map("instance_name")
+  whatsappMessageId         String?  @db.VarChar(255) @map("whatsapp_message_id")
+  senderPhone               String?  @db.VarChar(255) @map("sender_phone")
+  senderName                String?  @db.VarChar(255) @map("sender_name")
+  senderJid                 String?  @db.VarChar(255) @map("sender_jid")
+  messageType               String?  @db.VarChar(255) @map("message_type")
+  hasMedia                  Boolean? @default(false) @db.Boolean @map("has_media")
+  hasQuotedMessage          Boolean? @default(false) @db.Boolean @map("has_quoted_message")
+  messageLength             Int?     @map("message_length")
+  sessionName               String?  @db.VarChar(255) @map("session_name")
+  agentSessionId            String?  @db.VarChar(255) @map("agent_session_id")
+  receivedAt                DateTime? @db.Timestamp @default(now()) @map("received_at")
+  processingStartedAt       DateTime? @db.Timestamp @map("processing_started_at")
+  agentRequestAt            DateTime? @db.Timestamp @map("agent_request_at")
+  agentResponseAt           DateTime? @db.Timestamp @map("agent_response_at")
+  evolutionSendAt           DateTime? @db.Timestamp @map("evolution_send_at")
+  completedAt               DateTime? @db.Timestamp @map("completed_at")
+  status                    String?  @db.VarChar(255) @default("received") @map("status")
+  errorMessage              String?  @db.Text @map("error_message")
+  errorStage                String?  @db.VarChar(255) @map("error_stage")
+  blockedByAccessRule       Boolean? @default(false) @db.Boolean @map("blocked_by_access_rule")
+  accessRuleId              Int?     @map("access_rule_id")
+  blockingReason            String?  @db.Text @map("blocking_reason")
+  agentProcessingTimeMs     Int?     @map("agent_processing_time_ms")
+  totalProcessingTimeMs     Int?     @map("total_processing_time_ms")
+  agentRequestTokens        Int?     @map("agent_request_tokens")
+  agentResponseTokens       Int?     @map("agent_response_tokens")
+  agentResponseSuccess      Boolean? @db.Boolean @map("agent_response_success")
+  agentResponseLength       Int?     @map("agent_response_length")
+  agentToolsUsed            Int?     @default(0) @map("agent_tools_used")
+  evolutionResponseCode     Int?     @map("evolution_response_code")
+  evolutionSuccess          Boolean? @db.Boolean @map("evolution_success")
+
+  @@map("omni_message_traces")
+  @@index([instanceName], map: "ix_omni_message_traces_instance_name")
+  @@index([whatsappMessageId], map: "ix_omni_message_traces_whatsapp_message_id")
+  @@index([senderPhone], map: "ix_omni_message_traces_sender_phone")
+  @@index([sessionName], map: "ix_omni_message_traces_session_name")
+  @@index([receivedAt], map: "ix_omni_message_traces_received_at")
+  @@index([status], map: "ix_omni_message_traces_status")
+  @@index([blockedByAccessRule], map: "ix_omni_message_traces_blocked_by_access_rule")
+}
+
+model OmniTracePayloads {
+  id                   Int      @id @default(autoincrement()) @map("id")
+  traceId              String?  @db.VarChar(255) @map("trace_id")
+  stage                String?  @db.VarChar(255) @map("stage")
+  payloadType          String?  @db.VarChar(255) @map("payload_type")
+  payloadCompressed    String?  @db.Text @map("payload_compressed")
+  payloadSizeOriginal  Int?     @map("payload_size_original")
+  payloadSizeCompressed Int?    @map("payload_size_compressed")
+  timestamp            DateTime? @db.Timestamp @default(now()) @map("timestamp")
+  statusCode           Int?     @map("status_code")
+  errorDetails         String?  @db.Text @map("error_details")
+  containsMedia        Boolean? @default(false) @db.Boolean @map("contains_media")
+  containsBase64       Boolean? @default(false) @db.Boolean @map("contains_base64")
+
+  @@map("omni_trace_payloads")
+  @@index([traceId], map: "ix_omni_trace_payloads_trace_id")
+  @@index([stage], map: "ix_omni_trace_payloads_stage")
+  @@index([timestamp], map: "ix_omni_trace_payloads_timestamp")
 }
 
 model OmniUserPreferences {
-  id        Int     @id @default(autoincrement()) @map("id")
-  sessionId String  @db.VarChar(255) @map("session_id")
-  key       String  @db.VarChar(100) @map("key")
-  value     String? @db.Text @map("value")
+  id        Int      @id @default(autoincrement()) @map("id")
+  sessionId String   @db.VarChar(255) @map("session_id")
+  key       String   @db.VarChar(100) @map("key")
+  value     String?  @db.Text @map("value")
+  createdAt DateTime @default(now()) @db.Timestamp @map("created_at")
+  updatedAt DateTime @default(now()) @db.Timestamp @map("updated_at")
 
   @@map("omni_user_preferences")
   @@unique([sessionId, key], map: "uq_user_preferences_session_key")
   @@index([sessionId], map: "ix_omni_user_preferences_session_id")
-}
-
-model OmniUsers {
-  id String @id
-  @@map("omni_users")
-  @@ignore
+  @@index([key], map: "ix_omni_user_preferences_key")
 }
 
 model Session {
